@@ -18,6 +18,7 @@
     </style>
 </head>
 <body class="min-h-screen flex flex-col">
+    <!-- Header -->
     <header class="bg-white shadow-sm sticky top-0 z-30 border-b border-gray-100">
         <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <a href="index.html" class="font-bold text-gray-800 text-xl flex items-center gap-2 hover:text-indigo-600 transition">
@@ -26,15 +27,46 @@
                 </svg>
                 المتجر
             </a>
-            <div class="text-sm text-gray-500">تصفح المنتجات</div>
+            <div class="text-sm text-gray-500">
+                <a href="index.html" class="flex items-center gap-1 hover:text-indigo-600">
+                   <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                   تصفح المنتجات
+                </a>
+            </div>
         </div>
     </header>
 
-    <div id="app" class="flex-1 max-w-6xl mx-auto w-full p-4">
+    <div id="app" class="flex-1 max-w-6xl mx-auto w-full p-4 relative">
         <div class="loading">جاري التحميل...</div>
     </div>
 
+    <!-- Order Modal -->
+    <div id="orderModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 animate-fade-in">
+            <h3 class="text-lg font-bold text-gray-900 mb-4 text-center">طلب المنتج</h3>
+            <p id="modalProductName" class="text-indigo-600 font-bold text-center mb-6 text-sm bg-indigo-50 py-2 rounded-lg"></p>
+            <form id="orderForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">الاسم</label>
+                    <input type="text" id="custName" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="اسمك الكريم">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
+                    <input type="tel" id="custPhone" required class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="05xxxxxxxx">
+                </div>
+                <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-lg flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.637 3.891 1.685 5.453l-1.717 1.43 4.521-1.582z"/></svg>
+                    إرسال الطلب عبر واتساب
+                </button>
+                <button type="button" onclick="closeModal()" class="w-full bg-gray-100 text-gray-700 py-2 rounded-lg font-medium hover:bg-gray-200 transition">إلغاء</button>
+            </form>
+        </div>
+    </div>
+
     <script>
+        const STORE_PHONE = "01019460706"; 
+        let currentProduct = null;
+
         function renderImage(p, sizeClass) {
             if (p.image) {
                 return `<img src="${p.image}" alt="${p.name}" class="w-full h-full object-contain" onerror="this.onerror=null;this.parentElement.innerHTML='<svg class=\\'h-12 w-12 text-gray-300\\' fill=\\'none\\' stroke=\\'currentColor\\' viewBox=\\'0 0 24 24\\'><path stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\' stroke-width=\\'2\\' d=\\'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z\\'/></svg>';">`;
@@ -45,6 +77,30 @@
                 </svg>
             `;
         }
+
+        function openOrderModal(prodId, prodName, prodPrice) {
+            currentProduct = { id: prodId, name: prodName, price: prodPrice };
+            document.getElementById('modalProductName').innerText = prodName + ' - ' + prodPrice.toFixed(2) + ' ريال';
+            document.getElementById('orderModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('orderModal').classList.add('hidden');
+        }
+
+        document.getElementById('orderForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!currentProduct) return;
+            
+            const name = document.getElementById('custName').value;
+            const phone = document.getElementById('custPhone').value;
+            
+            const text = encodeURIComponent(`مرحباً، أود طلب المنتج التالي:\n*المنتج:* ${currentProduct.name}\n*السعر:* ${currentProduct.price} ريال\n\n*بيانات العميل:*\nالاسم: ${name}\nالهاتف: ${phone}`);
+            
+            const waLink = `https://wa.me/${STORE_PHONE}?text=${text}`;
+            window.open(waLink, '_blank');
+            closeModal();
+        });
 
         async function load() {
             const params = new URLSearchParams(window.location.search);
@@ -59,8 +115,20 @@
                 if (id) {
                     const product = products.find(p => p.id == id);
                     if (!product) { window.location.href = 'index.html'; return; }
-                    const alternatives = products.filter(p => p.id != id);
                     
+                    // Alternatives Logic: Same usage first, then price
+                    const alternatives = products
+                        .filter(p => p.id != id)
+                        .sort((a, b) => {
+                             // If usage matches, prioritize it
+                             const aMatch = (a.usage && product.usage && a.usage === product.usage) ? 1 : 0;
+                             const bMatch = (b.usage && product.usage && b.usage === product.usage) ? 1 : 0;
+                             if (aMatch !== bMatch) return bMatch - aMatch; 
+                             // Then cheaper price
+                             return a.price - b.price;
+                        })
+                        .slice(0, 10); // Show top 10
+
                     const renderSideItem = (p) => `
                         <a href="?id=${p.id}" class="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 transition border border-transparent hover:border-gray-200 group">
                             <div class="h-10 w-10 rounded bg-white border border-gray-100 flex items-center justify-center shrink-0 overflow-hidden">
@@ -68,7 +136,10 @@
                             </div>
                             <div class="flex-1 min-w-0">
                                 <div class="font-bold text-gray-800 text-sm truncate">${p.name}</div>
-                                <div class="text-indigo-600 font-bold text-xs">${Number(p.price).toFixed(2)} ريال</div>
+                                <div class="flex items-center justify-between">
+                                    <div class="text-indigo-600 font-bold text-xs">${Number(p.price).toFixed(2)} ريال</div>
+                                    ${(p.usage && product.usage && p.usage === product.usage) ? '<span class="text-[10px] bg-green-100 text-green-700 px-1 rounded">بديل</span>' : ''}
+                                </div>
                             </div>
                         </a>
                     `;
@@ -79,11 +150,14 @@
                                 <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
                                     <div class="bg-gray-50 h-64 md:h-80 flex items-center justify-center relative p-8">
                                         ${product.image ? `<img src="${product.image}" class="h-full w-full object-contain mix-blend-multiply" />` : 
-                                        `<svg class="h-32 w-32 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`}
+                                        `<svg class="h-32 w-32 text-indigo-200" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>`}
                                     </div>
                                     <div class="p-6 md:p-8">
                                         <div class="flex flex-wrap items-start justify-between gap-4 mb-4">
-                                            <h1 class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">${product.name}</h1>
+                                            <div>
+                                                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 leading-tight">${product.name}</h1>
+                                                ${product.usage ? `<span class="text-sm text-gray-500 font-medium bg-gray-100 px-2 py-1 rounded mt-2 inline-block">${product.usage}</span>` : ''}
+                                            </div>
                                             <div class="bg-green-50 text-green-700 px-3 py-1 rounded-full text-sm font-semibold border border-green-100 shrink-0">متوفر</div>
                                         </div>
                                         <div class="flex items-baseline gap-2 mb-8">
@@ -94,19 +168,23 @@
                                             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">تفاصيل المنتج</h3>
                                             <p class="text-gray-700 leading-relaxed text-base">${product.description || 'لا يوجد وصف متاح.'}</p>
                                         </div>
-                                        <button class="w-full bg-indigo-600 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2">
-                                            اطلب الآن
+                                        <button onclick="openOrderModal(${product.id}, '${product.name}', ${product.price})" class="w-full bg-indigo-600 text-white text-center py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition shadow-lg shadow-indigo-200 flex items-center justify-center gap-2 cursor-pointer">
+                                            اطلب الآن (واتساب)
                                         </button>
                                     </div>
                                 </div>
+                                
+                                <!-- Alternatives Section Mobile -->
                                 <div class="md:hidden mt-8">
-                                    <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">منتجات أخرى قد تعجبك</h3>
-                                    <div class="space-y-2">${alternatives.map(renderSideItem).join('')}</div>
+                                    <h3 class="font-bold text-gray-800 mb-4 flex items-center gap-2 text-lg">بدائل ومنتجات مشابهة</h3>
+                                    <div class="space-y-2">${alternatives.length ? alternatives.map(renderSideItem).join('') : '<p class="text-gray-400">لا توجد بدائل حالياً</p>'}</div>
                                 </div>
                             </div>
+                            
+                            <!-- Sidebar Desktop -->
                             <div class="hidden md:block md:col-span-1 bg-white rounded-xl shadow-sm border border-gray-200 p-4 sticky top-24">
-                                <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider text-center border-b border-gray-100 pb-2">تصفح المنتجات</h3>
-                                <div class="sidebar-scroll space-y-2">${alternatives.map(renderSideItem).join('') || '<p class="text-center text-gray-400 text-sm">لا توجد منتجات.</p>'}</div>
+                                <h3 class="font-bold text-gray-800 mb-4 text-sm uppercase tracking-wider text-center border-b border-gray-100 pb-2">بدائل ومنتجات مشابهة</h3>
+                                <div class="sidebar-scroll space-y-2">${alternatives.length ? alternatives.map(renderSideItem).join('') : '<p class="text-center text-gray-400 text-sm">لا توجد منتجات.</p>'}</div>
                             </div>
                         </div>
                     `;
@@ -129,7 +207,7 @@
                     app.innerHTML = `
                         <div class="mb-8 text-center">
                             <h2 class="text-2xl font-bold text-gray-900 mb-2">جميع المنتجات المتوفرة</h2>
-                            <p class="text-gray-500">اختر منتجاً لعرض التفاصيل</p>
+                            <p class="text-gray-500">اختر منتجاً لعرض التفاصيل والبدائل</p>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                             ${products.length ? listHtml : '<div class="col-span-full text-center py-12"><p class="text-gray-500">المخزون فارغ.</p></div>'}
